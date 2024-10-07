@@ -43,6 +43,9 @@
 │       └── main.yaml
 └── site.yaml
 ```
+自己测试的三master三node集群
+![image](https://github.com/user-attachments/assets/1f2454cd-84de-4c24-b5b0-4eac336b3896)
+
 ```
 [root@ansible-1 k8s_test]# ansible-playbook site.yaml -i kubernetes/hosts.ini 
 [WARNING]: Invalid characters were found in group names but not replaced, use -vvvv to see details
