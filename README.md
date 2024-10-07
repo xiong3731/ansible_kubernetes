@@ -5,43 +5,43 @@
 目录结构
 
 ```shell
-[root@ansible-1 k8s_test]# tree
 .
-├── kubernetes
-│   ├── files
-│   │   ├── check-haproxy.sh
-│   │   ├── cri-dockerd-0.3.4.amd64.tgz
-│   │   ├── cri-docker.service
-│   │   ├── cri-docker.socket
-│   │   ├── daemon.json
-│   │   ├── docker-ce.repo
-│   │   ├── kube-flannel.yml
-│   │   ├── kubernetes.repo
-│   │   ├── scp_cert.sh
-│   │   └── test
-│   ├── handlers
-│   │   └── main.yaml
-│   ├── hosts.ini
-│   ├── tasks
-│   │   ├── a_env.yaml
-│   │   ├── b_docker_install.yaml
-│   │   ├── c_cri_docker.yaml
-│   │   ├── d_kube_install.yaml
-│   │   ├── e_ssh_conect.yaml
-│   │   ├── f_ha_keep_lvs_masters.yaml
-│   │   ├── g_kubeadm.yaml
-│   │   ├── main.yaml
-│   │   └── test.yaml
-│   ├── templates
-│   │   ├── etcd.yaml.j2
-│   │   ├── haproxy.cfg.j2
-│   │   ├── hosts.j2
-│   │   ├── keepalived.conf.j2
-│   │   ├── ssh_keygen.sh.j2
-│   │   └── test.j2
-│   └── vars
-│       └── main.yaml
-└── site.yaml
+├── kubernetes                 # Kubernetes 相关的 Ansible 角色
+│   ├── files                  # 存放需要复制到目标主机的文件
+│   │   ├── check-haproxy.sh   # 检查 HAProxy 状态的脚本
+│   │   ├── cri-dockerd-0.3.4.amd64.tgz # CRI-Dockerd 的压缩包
+│   │   ├── cri-docker.service  # CRI-Docker 的 systemd 服务文件
+│   │   ├── cri-docker.socket   # CRI-Docker 的 socket 文件
+│   │   ├── daemon.json         # Docker 的配置文件
+│   │   ├── docker-ce.repo      # Docker CE 的 Yum 仓库配置
+│   │   ├── kube-flannel.yml    # Flannel 的 Kubernetes 配置文件
+│   │   ├── kubernetes.repo     # Kubernetes 的 Yum 仓库配置
+│   │   ├── scp_cert.sh         # 复制证书的脚本
+│   │   └── test                # 测试文件夹
+│   ├── handlers                # 存放处理程序的目录
+│   │   └── main.yaml           # 主处理程序文件
+│   ├── hosts.ini               # Ansible 的主机清单文件
+│   ├── tasks                   # 存放任务的目录
+│   │   ├── a_env.yaml          # 环境配置任务
+│   │   ├── b_docker_install.yaml # Docker 安装任务
+│   │   ├── c_cri_docker.yaml   # CRI-Docker 安装任务
+│   │   ├── d_kube_install.yaml  # Kubernetes 安装任务
+│   │   ├── e_ssh_conect.yaml    # SSH 连接配置任务
+│   │   ├── f_ha_keep_lvs_masters.yaml # 高可用 LVS 主节点配置任务
+│   │   ├── g_kubeadm.yaml      # Kubeadm 初始化任务
+│   │   ├── main.yaml           # 主任务文件
+│   │   └── test.yaml           # 测试任务
+│   ├── templates               # 存放模板文件的目录
+│   │   ├── etcd.yaml.j2        # etcd 配置的 Jinja2 模板
+│   │   ├── haproxy.cfg.j2      # HAProxy 配置的 Jinja2 模板
+│   │   ├── hosts.j2            # 主机文件的 Jinja2 模板
+│   │   ├── keepalived.conf.j2   # Keepalived 配置的 Jinja2 模板
+│   │   ├── ssh_keygen.sh.j2    # SSH 密钥生成脚本的 Jinja2 模板
+│   │   └── test.j2             # 测试模板
+│   └── vars                    # 存放变量的目录
+│       └── main.yaml           # 主变量文件
+└── site.yaml                   # Ansible playbook 文件
+
 ```
 自己测试的三master三node集群
 ![image](https://github.com/user-attachments/assets/1f2454cd-84de-4c24-b5b0-4eac336b3896)
