@@ -1,0 +1,10 @@
+- include_tasks: a_env.yaml
+- include_tasks: b_docker_install.yaml
+- include_tasks: c_cri_docker.yaml
+- include_tasks: d_kube_install.yaml
+- include_tasks: e_ssh_conect.yaml
+- include_tasks: f_ha_keep_lvs_masters.yaml
+  when: "'k8s-masters' in group_names"
+- include_tasks: g_kubeadm.yaml
+
+# - include_tasks: test.yaml

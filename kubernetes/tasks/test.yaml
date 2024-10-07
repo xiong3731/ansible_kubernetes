@@ -1,0 +1,38 @@
+# - name: test
+#   template:
+#     src: etcd.yaml.j2
+#     dest: /tmp/etcd
+
+# - name: vim ens33
+#   block:
+#     - lineinfile:
+#         path: /tmp/ens33
+#         regexp: '^BOOTPROTO=.*'
+#         line: 'BOOTPROTO=static'
+#     - blockinfile:
+#         path: /tmp/ens33
+#         block: |
+#           NETMASK=255.255.255.0
+#           GATEWAY=192.168.43.2
+#           DNS1=8.8.8.8
+#           DNS2=114.114.114.114
+#           IPADDR={{ ansible_default_ipv4['address'] }}
+#   become: yes
+
+
+- name: Copy Kubernetes PKI files to k8s-master
+  synchronize:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: '/etc/kubernetes/pki/ca.crt', dest: '/etc/kubernetes/pki/ca.crt' }
+    - { src: '/etc/kubernetes/pki/ca.key', dest: '/etc/kubernetes/pki/ca.key' }
+    - { src: '/etc/kubernetes/pki/sa.key', dest: '/etc/kubernetes/pki/sa.key' }
+    - { src: '/etc/kubernetes/pki/sa.pub', dest: '/etc/kubernetes/pki/sa.pub' }
+    - { src: '/etc/kubernetes/pki/front-proxy-ca.crt', dest: '/etc/kubernetes/pki/front-proxy-ca.crt' }
+    - { src: '/etc/kubernetes/pki/front-proxy-ca.key', dest: '/etc/kubernetes/pki/front-proxy-ca.key' }
+    - { src: '/etc/kubernetes/pki/etcd/ca.crt', dest: '/etc/kubernetes/pki/etcd/ca.crt' }
+    - { src: '/etc/kubernetes/pki/etcd/ca.key', dest: '/etc/kubernetes/pki/etcd/ca.key' }
+  delegate_to: k8s-master1
+  become: yes
+  when: inventory_hostname in groups['k8s-masters'] and inventory_hostname != 'k8s-master1'

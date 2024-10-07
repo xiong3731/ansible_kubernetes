@@ -1,0 +1,118 @@
+- name: 重置 kubeadm
+  shell: |
+    kubeadm reset --cri-socket unix:///var/run/cri-dockerd.sock --force
+  become: yes
+
+- name: 初始化 kubeadm
+  shell: |
+    kubeadm init --control-plane-endpoint={{ vip }}:16443 --image-repository registry.aliyuncs.com/google_containers --kubernetes-version v1.28.2 --pod-network-cidr=10.244.0.0/16 --cri-socket unix:///var/run/cri-dockerd.sock
+  when: inventory_hostname == 'k8s-master1'
+  become: yes
+#   register: init_result
+
+# - name: debug init result
+#   debug: 
+#     msg: "{{ init_result.stdout }}"
+#   when: inventory_hostname == 'k8s-master1'
+
+- name: 初始化后配置 kube 目录
+  shell: |
+    mkdir -p $HOME/.kube
+    echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> /etc/profile
+    source /etc/profile
+  when: inventory_hostname == 'k8s-master1'
+  become: yes
+  args:
+    creates: $HOME/.kube/config
+
+- name: 复制 admin.conf 到 kube 目录
+  shell: |
+    yes | cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
+    chown $(id -u):$(id -g) $HOME/.kube/config
+  when: inventory_hostname == 'k8s-master1'
+  become: yes
+
+- name: 创建 etcd 目录
+  shell: mkdir -p /etc/kubernetes/pki/etcd/
+  when: inventory_hostname in groups['k8s-masters'] and inventory_hostname != 'k8s-master1'
+
+- name: 复制 Kubernetes PKI 文件到 k8s-master
+  synchronize:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: '/etc/kubernetes/pki/ca.crt', dest: '/etc/kubernetes/pki/ca.crt' }
+    - { src: '/etc/kubernetes/pki/ca.key', dest: '/etc/kubernetes/pki/ca.key' }
+    - { src: '/etc/kubernetes/pki/sa.key', dest: '/etc/kubernetes/pki/sa.key' }
+    - { src: '/etc/kubernetes/pki/sa.pub', dest: '/etc/kubernetes/pki/sa.pub' }
+    - { src: '/etc/kubernetes/pki/front-proxy-ca.crt', dest: '/etc/kubernetes/pki/front-proxy-ca.crt' }
+    - { src: '/etc/kubernetes/pki/front-proxy-ca.key', dest: '/etc/kubernetes/pki/front-proxy-ca.key' }
+    - { src: '/etc/kubernetes/pki/etcd/ca.crt', dest: '/etc/kubernetes/pki/etcd/ca.crt' }
+    - { src: '/etc/kubernetes/pki/etcd/ca.key', dest: '/etc/kubernetes/pki/etcd/ca.key' }
+  delegate_to: k8s-master1
+  become: yes
+  when: inventory_hostname in groups['k8s-masters'] and inventory_hostname != 'k8s-master1'
+
+- name: 从 master1 获取加入命令
+  shell: kubeadm token create --print-join-command > /tmp/init_command.sh
+  when: inventory_hostname == 'k8s-master1'
+  become: yes
+
+- name: 分发初始化命令
+  synchronize:
+    src: /tmp/init_command.sh
+    dest: /tmp/init_command.sh
+  when: inventory_hostname in groups['k8s'] and inventory_hostname != 'k8s-master1'
+  delegate_to: k8s-master1
+
+- name: 主节点加入 Kubernetes 集群
+  shell: |
+    sed -i '$ s/$/ --control-plane --cri-socket unix:\/\/var\/run\/cri-dockerd.sock/' /tmp/init_command.sh
+    sh /tmp/init_command.sh
+  when: inventory_hostname in groups['k8s-masters'] and inventory_hostname != 'k8s-master1'
+
+- name: 工作节点加入 Kubernetes 集群
+  shell: |
+    sed -i '$ s/$/ --cri-socket unix:\/\/var\/run\/cri-dockerd.sock/' /tmp/init_command.sh
+    sh /tmp/init_command.sh
+  when: "'k8s-nodes' in group_names"
+
+- name: 复制 Flannel 配置文件
+  copy:
+    src: kube-flannel.yml
+    dest: /tmp/kube-flannel.yml
+  when: inventory_hostname == 'k8s-master1'
+
+- name: 创建 Flannel 网络
+  shell: |
+    kubectl create -f /tmp/kube-flannel.yml
+  when: inventory_hostname == 'k8s-master1'
+
+- name: 配置 etcd 高可用性
+  template:
+    src: etcd.yaml.j2
+    dest: /etc/kubernetes/manifests/etcd.yaml
+  when: inventory_hostname == 'k8s-master1'
+
+- name: 重启 kubelet 服务
+  service: 
+    name: kubelet
+    state: restarted
+
+- name: 暂停 30 秒
+  pause:
+    seconds: 30
+
+# - name: Get the status of each endpoint in etcd cluster
+#   shell: docker run --rm -it --net host -v /etc/kubernetes:/etc/kubernetes registry.cn-hangzhou.aliyuncs.com/google_containers/etcd:3.5.9-0 etcdctl --cert /etc/kubernetes/pki/etcd/peer.crt --key /etc/kubernetes/pki/etcd/peer.key --cacert /etc/kubernetes/pki/etcd/ca.crt endpoint status --cluster
+#   register: statusOfEtcd
+#   when: inventory_hostname == 'k8s-master1'
+
+# - name: Display statusOfEtcd
+#   debug:
+#     var: statusOfEtcd.stdout  
+#   when: inventory_hostname == 'k8s-master1'
+
+- name: 任务完成
+  debug:
+    msg: "任务完成"

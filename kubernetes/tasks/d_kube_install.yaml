@@ -1,0 +1,19 @@
+- name: 配置 Kubernetes yum 源
+  copy:
+    dest: /etc/yum.repos.d/kubernetes.repo
+    src: kubernetes.repo
+
+- name: 安装 kubeadm、kubelet 和 kubectl
+  yum:
+    name:
+      - kubeadm-1.28.2-0
+      - kubelet-1.28.2-0
+      - kubectl-1.28.2-0
+    state: present
+    disable_excludes: kubernetes
+
+- name: 启动并启用 kubelet 服务
+  service:
+    name: kubelet
+    state: started
+    enabled: yes

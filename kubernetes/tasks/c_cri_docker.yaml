@@ -1,0 +1,36 @@
+- name: 发送 cri-docker 包
+  copy:
+    src: cri-dockerd-0.3.4.amd64.tgz
+    dest: /tmp/cri-dockerd-0.3.4.amd64.tgz
+
+- name: 解压 cri-docker 包
+  shell: |
+    tar -zxvf /tmp/cri-dockerd-0.3.4.amd64.tgz -C /tmp
+  args:
+    creates: /usr/bin/cri-dockerd
+
+- name: 复制 cri-docker 文件
+  shell: cp /tmp/cri-dockerd/* /usr/bin/
+  args:
+    creates: /usr/bin/cri-dockerd
+
+- name: 复制 cri-docker 服务文件
+  copy:
+    dest: /usr/lib/systemd/system/cri-docker.service
+    src: cri-docker.service
+    mode: '0755'
+
+- name: 复制 cri-docker 套接字文件
+  copy:
+    dest: /usr/lib/systemd/system/cri-docker.socket
+    src: cri-docker.socket
+    mode: '0755'
+
+- name: 重新加载系统守护进程
+  shell: systemctl daemon-reload
+
+- name: 启动 cri-docker 服务
+  service:
+    name: cri-docker
+    state: started
+    enabled: yes

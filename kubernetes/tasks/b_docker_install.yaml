@@ -1,0 +1,29 @@
+- name: 配置 Docker 的 yum 源
+  copy:
+    src: docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+  become: yes
+
+- name: 安装 Docker
+  yum:
+    name: 
+      - docker-ce
+    state: latest
+
+- name: 创建 Docker 配置目录
+  file:
+    path: /etc/docker
+    state: directory
+    mode: "0755"
+
+- name: 编辑 daemon.json
+  copy:
+    dest: /etc/docker/daemon.json
+    src: daemon.json
+    mode: "0644"
+
+- name: 启动并启用 Docker 服务
+  service:
+    name: docker
+    state: started
+    enabled: yes

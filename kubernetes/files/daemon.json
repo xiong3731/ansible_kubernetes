@@ -1,0 +1,18 @@
+{
+    "registry-mirrors": [
+        "https://hub.uuuadc.top/",
+        "https://docker.anyhub.us.kg",
+        "https://docker.chenby.cn",
+        "https://docker.m.daocloud.io",
+        "https://atomhub.openatom.cn",
+        "https://docker.awsl9527.cn",
+        "https://hubs.llx.pp.ua",
+        "https://quay.llx.pp.ua",
+        "https://gcr.llx.pp.ua",
+        "https://k8s-gcr.llx.pp.ua",
+        "https://k8s.llx.pp.ua",
+        "https://ghcr.llx.pp.ua",
+        "https://cloudsmith.llx.pp.ua",
+        "https://nvcr.llx.pp.ua"
+    ]
+}

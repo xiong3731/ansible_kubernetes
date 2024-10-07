@@ -1,0 +1,31 @@
+! Configuration File for keepalived
+
+global_defs {
+   script_user root
+   enable_script_security
+   router_id {{ inventory_hostname }}   # 使用 inventory_hostname
+}
+
+vrrp_script check_haproxy {
+   script "/etc/keepalived/check-haproxy.sh"
+   interval 3
+   weight -2
+}
+
+vrrp_instance VI_1 {
+    state MASTER
+    interface ens33
+    virtual_router_id 53
+    priority {{ (groups['all'] | length - ansible_play_hosts.index(inventory_hostname) | default(0)) + 100 }}
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+        {{ vip }}/24  # 默认的虚拟IP地址
+    }
+    track_script {
+        check_haproxy
+    }
+}

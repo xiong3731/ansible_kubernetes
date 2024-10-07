@@ -1,0 +1,15 @@
+- name: 复制 ssh_keygen.sh 到目标机器
+  template:
+    src: ssh_keygen.sh.j2  
+    dest: /tmp/ssh_keygen.sh  
+    mode: '0755'  
+
+- name: 执行 SSH 密钥生成脚本
+  shell: sh /tmp/ssh_keygen.sh  
+  args:
+    removes: /root/.ssh/id_rsa  
+  register: result  
+
+- name: 显示执行结果
+  debug:
+    var: result.stdout  

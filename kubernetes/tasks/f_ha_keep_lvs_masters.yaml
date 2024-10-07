@@ -1,0 +1,38 @@
+- name: 安装 HAProxy 和 Keepalived
+  yum: 
+    name: 
+      - haproxy
+      - keepalived
+    state: latest
+
+- name: 从模板生成 haproxy.cfg
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+  # notify:
+  #   - restart haproxy
+
+- name: 从模板生成 keepalived.conf
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+  # notify:
+  #   - restart keepalived
+
+- name: 复制 check-haproxy.sh 到目标机器
+  copy:
+    src: check-haproxy.sh
+    dest: /etc/keepalived/check-haproxy.sh
+    mode: '0777'  
+
+- name: 启动并启用 HAProxy 服务
+  service: 
+    name: haproxy
+    state: started
+    enabled: yes
+
+- name: 启动并启用 Keepalived 服务
+  service: 
+    name: keepalived
+    state: started
+    enabled: yes

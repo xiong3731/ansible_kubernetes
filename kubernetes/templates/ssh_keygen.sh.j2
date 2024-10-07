@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# 定义目标节点
+NODES=({% for host in groups['k8s'] %}"{{ host }}" {% if not loop.last %}{% endif %}{% endfor %})
+
+# 生成 SSH 密钥对（如果没有）
+if [ ! -f ~/.ssh/id_rsa ]; then
+  ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N ""
+  echo "SSH key pair generated."
+else
+  echo "SSH key pair already exists."
+fi
+
+# 循环遍历每个节点并配置免密登录
+for NODE in "${NODES[@]}"; do
+  echo "Copying SSH key to $NODE..."
+  sshpass -p "Xsw20030731" ssh-copy-id -o StrictHostKeyChecking=no $NODE
+done
+
+echo "SSH key configuration completed."
